@@ -1,0 +1,49 @@
+## .NET build output
+**/bin/
+**/obj/
+
+## Local publish output (e.g. `dotnet publish -o <folder>`)
+## `bin/` and `obj/` only cover in-place builds. Agents or scripts that
+## publish to a custom folder at the repo root dump ~130 regenerable
+## artifact files plus a copy of appsettings — ignore those folders here.
+/build_verify/
+/publish/
+**/publish/
+**/Publish/
+
+## User- and machine-specific files
+*.user
+*.suo
+*.userosscache
+*.rsuser
+
+## Visual Studio / VS Code / Rider / Cursor
+.vs/
+.vscode/
+.idea/
+.cursor/
+
+## Python cache (tools/seeder/gen_seeder.py)
+__pycache__/
+*.pyc
+
+## Local assistant / tooling state
+.claude/
+
+## Logs
+*.log
+
+## Local app configuration (copy from appsettings.Development.json.example)
+BevosTunesMVC/appsettings.Development.json
+BevosTunesMVC/appsettings.*.local.json
+
+## Local-only docs and agent instructions (README.md is the only public doc)
+/docs/
+/AGENTS.md
+/CLAUDE.md
+
+## OS / merge noise
+Thumbs.db
+.DS_Store
+*.orig
+~$*.xlsx
