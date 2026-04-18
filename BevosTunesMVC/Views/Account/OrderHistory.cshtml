@@ -1,0 +1,84 @@
+@using BevosTunesMVC.Models
+@model IEnumerable<BevosTunesMVC.Models.Order>
+@{
+    ViewData["Title"] = "Order History";
+    var orders = Model ?? Enumerable.Empty<Order>();
+}
+
+<h2>Order History</h2>
+
+@if (!orders.Any())
+{
+    <p class="mt-3 text-muted">You have not placed any orders yet.</p>
+}
+else
+{
+    @foreach (var order in orders)
+    {
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Order #@order.OrderID</strong>
+                <span>@order.OrderDate?.ToString("MMM d, yyyy")</span>
+                @if (order.IsRefunded)
+                {
+                    <span class="badge bg-danger">Refunded</span>
+                }
+            </div>
+            <div class="card-body">
+                @if (order.IsGift && !string.IsNullOrEmpty(order.GiftRecipientEmail))
+                {
+                    <p style="color: #0077cc;"><strong>Gift to:</strong> @order.GiftRecipientEmail</p>
+                }
+                @if (order.CreditCard != null)
+                {
+                    <p><strong>Card:</strong> **** **** **** @order.CreditCard.CardNumber[^4..] (@order.CreditCard.DisplayCardType)</p>
+                }
+
+                <table class="table table-sm">
+                    <thead><tr><th>Item</th><th>Price Paid</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in order.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    @if (item.Song != null)
+                                    {
+                                        <span>@item.Song.Title</span>
+                                    }
+                                    else if (item.Album != null)
+                                    {
+                                        <span>@item.Album.Title</span>
+                                    }
+                                </td>
+                                <td>$@item.Price.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                @{
+                    var subtotal = order.OrderItems.Sum(i => i.Price);
+                    var tax = subtotal * 0.0825m;
+                    var total = subtotal + tax;
+                }
+                <p class="mb-0"><strong>Subtotal:</strong> $@subtotal.ToString("0.00") |
+                   <strong>Tax:</strong> $@tax.ToString("0.00") |
+                   <strong>Total:</strong> $@total.ToString("0.00")</p>
+
+                @if (!order.IsRefunded)
+                {
+                    <div class="mt-3">
+                        <a class="btn btn-outline-danger btn-sm"
+                           asp-controller="Checkout"
+                           asp-action="Refund"
+                           asp-route-orderId="@order.OrderID">Refund Entire Order</a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" asp-action="Details">Back to Account</a>
+</div>

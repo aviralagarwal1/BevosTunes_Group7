@@ -1,0 +1,126 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "My Reviews";
+    var songReviews   = ViewBag.SongReviews   as List<SongReview>   ?? new();
+    var albumReviews  = ViewBag.AlbumReviews  as List<AlbumReview>  ?? new();
+    var artistReviews = ViewBag.ArtistReviews as List<ArtistReview> ?? new();
+    int total         = ViewBag.TotalCount    ?? 0;
+
+    string StatusBadge(ReviewStatus s) => s switch
+    {
+        ReviewStatus.Approved => "bg-success",
+        ReviewStatus.Pending  => "bg-warning text-dark",
+        ReviewStatus.Rejected => "bg-danger",
+        _                     => "bg-secondary"
+    };
+}
+
+<h2>My Reviews <span class="badge bg-secondary">@total</span></h2>
+
+<p class="text-muted mb-4">
+    Your reviews appear publicly only after we approve them. Click an item name below to edit
+    your rating or to edit / delete your review text. Ratings can be changed but not removed.
+</p>
+
+@if (total == 0)
+{
+    <div class="alert alert-light border">
+        You haven't submitted any reviews yet. Browse
+        <a asp-controller="Songs"   asp-action="Index">Songs</a>,
+        <a asp-controller="Albums"  asp-action="Index">Albums</a>, or
+        <a asp-controller="Artists" asp-action="Index">Artists</a>
+        to share your thoughts on something you own.
+    </div>
+}
+else
+{
+    @if (songReviews.Any())
+    {
+        <h4 class="mt-3">Song Reviews <span class="badge bg-secondary">@songReviews.Count</span></h4>
+        <table class="table table-sm table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Song</th>
+                    <th>Artist</th>
+                    <th style="width:70px">Rating</th>
+                    <th>Review</th>
+                    <th style="width:120px">Submitted</th>
+                    <th style="width:110px">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in songReviews)
+                {
+                    <tr>
+                        <td><a asp-controller="Songs" asp-action="Details" asp-route-id="@r.SongID">@r.Song?.Title</a></td>
+                        <td>@r.Song?.Artist?.Name</td>
+                        <td>@r.Rating / 5</td>
+                        <td>@(string.IsNullOrWhiteSpace(r.ReviewText) ? "-" : r.ReviewText)</td>
+                        <td>@r.DateCreated.ToShortDateString()</td>
+                        <td><span class="badge @StatusBadge(r.Status)">@r.Status</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (albumReviews.Any())
+    {
+        <h4 class="mt-4">Album Reviews <span class="badge bg-secondary">@albumReviews.Count</span></h4>
+        <table class="table table-sm table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Album</th>
+                    <th style="width:70px">Rating</th>
+                    <th>Review</th>
+                    <th style="width:120px">Submitted</th>
+                    <th style="width:110px">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in albumReviews)
+                {
+                    <tr>
+                        <td><a asp-controller="Albums" asp-action="Details" asp-route-id="@r.AlbumID">@r.Album?.Title</a></td>
+                        <td>@r.Rating / 5</td>
+                        <td>@(string.IsNullOrWhiteSpace(r.ReviewText) ? "-" : r.ReviewText)</td>
+                        <td>@r.DateCreated.ToShortDateString()</td>
+                        <td><span class="badge @StatusBadge(r.Status)">@r.Status</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    @if (artistReviews.Any())
+    {
+        <h4 class="mt-4">Artist Reviews <span class="badge bg-secondary">@artistReviews.Count</span></h4>
+        <table class="table table-sm table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Artist</th>
+                    <th style="width:70px">Rating</th>
+                    <th>Review</th>
+                    <th style="width:120px">Submitted</th>
+                    <th style="width:110px">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in artistReviews)
+                {
+                    <tr>
+                        <td><a asp-controller="Artists" asp-action="Details" asp-route-id="@r.ArtistID">@r.Artist?.Name</a></td>
+                        <td>@r.Rating / 5</td>
+                        <td>@(string.IsNullOrWhiteSpace(r.ReviewText) ? "-" : r.ReviewText)</td>
+                        <td>@r.DateCreated.ToShortDateString()</td>
+                        <td><span class="badge @StatusBadge(r.Status)">@r.Status</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" asp-action="Details">Back to Account</a>
+</div>

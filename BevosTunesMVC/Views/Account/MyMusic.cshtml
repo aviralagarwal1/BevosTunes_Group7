@@ -1,0 +1,94 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "My Music";
+    var music = ViewBag.Music as List<(Song Song, string? AlbumContext, bool IsGift, string? GiftFromName, DateTime? GiftDate)> ?? new();
+    int giftCount = music.Count(m => m.IsGift);
+}
+
+<h2>My Music <span class="badge bg-secondary">@music.Count</span></h2>
+
+@if (giftCount > 0)
+{
+    <p class="text-muted mb-2">
+        Click the song title to view details or leave a review.
+        Gift details are shown directly on gifted tracks.
+    </p>
+}
+
+<form method="get" asp-action="MyMusic" class="row g-2 mt-2 mb-3">
+    <div class="col-md-3">
+        <input type="text" name="filterTitle" class="form-control" placeholder="Filter by title"
+               value="@ViewBag.FilterTitle" />
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="filterArtist" class="form-control" placeholder="Filter by artist"
+               value="@ViewBag.FilterArtist" />
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="filterAlbum" class="form-control" placeholder="Filter by album"
+               value="@ViewBag.FilterAlbum" />
+    </div>
+    <div class="col-md-3">
+        <input type="text" name="filterGenre" class="form-control" placeholder="Filter by genre"
+               value="@ViewBag.FilterGenre" />
+    </div>
+    <div class="col-md-3">
+        <select name="sortBy" class="form-select">
+            <option value="title" selected="@(ViewBag.SortBy == "title")">Title A-Z</option>
+            <option value="title_desc" selected="@(ViewBag.SortBy == "title_desc")">Title Z-A</option>
+            <option value="artist" selected="@(ViewBag.SortBy == "artist")">Artist A-Z</option>
+            <option value="artist_desc" selected="@(ViewBag.SortBy == "artist_desc")">Artist Z-A</option>
+            <option value="genre" selected="@(ViewBag.SortBy == "genre")">Genre A-Z</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filter / Sort</button>
+        <a class="btn btn-secondary" asp-action="MyMusic">Reset</a>
+    </div>
+</form>
+
+@if (!music.Any())
+{
+    <p class="text-muted">No music found.</p>
+}
+else
+{
+    <table class="table table-striped table-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Title</th>
+                <th>Artist</th>
+                <th>Genre(s)</th>
+                <th>Album</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (song, albumCtx, isGift, giftFromName, giftDate) in music)
+            {
+                <tr>
+                    <td>
+                        <a asp-controller="Songs" asp-action="Details" asp-route-id="@song.SongID">@song.Title</a>
+                        @if (isGift)
+                        {
+                            <span class="badge bg-info text-dark ms-1">Gift</span>
+                            <div class="small text-muted mt-1">
+                                From @(giftFromName ?? "a friend")
+                                @if (giftDate.HasValue)
+                                {
+                                    <span>on @giftDate.Value.ToString("MMMM d, yyyy")</span>
+                                }
+                            </div>
+                        }
+                    </td>
+                    <td>@song.Artist?.Name</td>
+                    <td>@string.Join(", ", song.SongGenres.Select(sg => sg.Genre.Name))</td>
+                    <td>@(albumCtx ?? "-")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="mt-3">
+    <a class="btn btn-secondary" asp-action="Details">Back to Account</a>
+</div>
