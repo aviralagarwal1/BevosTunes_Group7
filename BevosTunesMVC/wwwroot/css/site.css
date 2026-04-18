@@ -1,0 +1,218 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+/* Page shell uses flex in _Layout (min-vh-100 + flex-grow-1); avoid legacy absolute footer spacing. */
+
+.app-navbar .navbar-brand {
+  margin-right: 1.5rem;
+}
+
+.app-navbar .navbar-nav {
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.app-navbar .nav-link {
+  padding: 0.52rem 0.76rem !important;
+}
+
+.app-navbar .navbar-text {
+  color: var(--bs-dark);
+}
+
+.role-badge {
+  font-weight: 600;
+}
+
+.role-badge-manager {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.role-badge-employee {
+  background-color: #d9efff;
+  color: #0b5aa2;
+}
+
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-page-header h2 {
+  margin-bottom: 0.25rem;
+}
+
+.admin-page-subtitle {
+  color: var(--bs-secondary-color);
+  margin-bottom: 0;
+}
+
+.admin-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-summary-card {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  padding: 1rem 1.1rem;
+}
+
+.admin-summary-label {
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-summary-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.admin-section-card {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.9rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+.admin-table-wrap {
+  border: 1px solid #dee2e6;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #fff;
+}
+
+.admin-table-wrap .table {
+  margin-bottom: 0;
+}
+
+.admin-report-page {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.admin-report-page-wide {
+  max-width: 1240px;
+}
+
+.admin-report-table {
+  table-layout: fixed;
+}
+
+.admin-report-table th,
+.admin-report-table td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+}
+
+.admin-report-table .report-col-number {
+  width: 52px;
+}
+
+.admin-report-table .report-col-primary {
+  width: 38%;
+}
+
+.admin-report-table .report-col-secondary {
+  width: 28%;
+}
+
+.admin-report-table .report-col-metric {
+  width: 12%;
+}
+
+.admin-report-table .report-col-currency {
+  width: 14%;
+}
+
+.admin-report-table-wide .report-col-genre {
+  width: 14%;
+}
+
+.admin-report-table-wide .report-col-artist {
+  width: 24%;
+}
+
+.purchase-flow-table {
+  border: 1px solid #000;
+}
+
+.purchase-flow-table th,
+.purchase-flow-table td {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  border-left: 0;
+  border-right: 0;
+}
+
+.purchase-flow-table tbody td,
+.purchase-flow-table tfoot td {
+  background-color: #fff;
+}
+
+.purchase-flow-table thead th {
+  font-weight: 400;
+}
+
+@media (max-width: 991.98px) {
+  .app-navbar .navbar-nav {
+    align-items: stretch;
+    gap: 0.1rem;
+  }
+
+  .app-navbar .nav-link {
+    padding: 0.5rem 0.7rem !important;
+  }
+
+  .admin-page-header {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .admin-report-page,
+  .admin-report-page-wide {
+    max-width: none;
+  }
+
+  .admin-report-table {
+    table-layout: auto;
+  }
+}
+
+.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+  color: var(--bs-secondary-color);
+  text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+  text-align: start;
+}

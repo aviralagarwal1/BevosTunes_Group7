@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Bevo's Tunes</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BevosTunesMVC.styles.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column min-vh-100">
+@{
+    var customerId = Context.Session.GetInt32("CustomerID");
+    var employeeId = Context.Session.GetInt32("EmployeeID");
+    var proxyCustomerId = Context.Session.GetInt32("ProxyCustomerID");
+    var isManager = Context.Session.GetString("IsManager") == "true";
+    bool isCustomer = customerId.HasValue;
+    bool isEmployee = employeeId.HasValue;
+    bool isProxyMode = proxyCustomerId.HasValue && isEmployee;
+}
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-toggleable-lg navbar-light bg-white border-bottom box-shadow mb-3 app-navbar">
+            <div class="container-fluid">
+                @if (isEmployee)
+                {
+                    <a class="navbar-brand" asp-controller="Employee" asp-action="Dashboard">Bevo's Tunes</a>
+                }
+                else
+                {
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">Bevo's Tunes</a>
+                }
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            @if (isEmployee)
+                            {
+                                <a class="nav-link text-dark" asp-controller="Employee" asp-action="Dashboard">Home</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
+                            }
+                        </li>
+
+                        @if (isCustomer && !isProxyMode)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="MyMusic">My Music</a>
+                            </li>
+                        }
+
+                        @if (isCustomer)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Songs" asp-action="Index">Songs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Albums" asp-action="Index">Albums</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Artists" asp-action="Index">Artists</a>
+                            </li>
+                        }
+                        else if (!isEmployee)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Songs" asp-action="Index">Songs</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Albums" asp-action="Index">Albums</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Artists" asp-action="Index">Artists</a>
+                            </li>
+                        }
+
+                        @if (isCustomer && !isProxyMode)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Cart" asp-action="Index">Cart</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="OrderHistory">Order History</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="MyReviews">My Reviews</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Details">My Account</a>
+                            </li>
+                        }
+                        else if (isProxyMode)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Cart" asp-action="Index">Cart</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Employee" asp-action="StopImpersonating">Stop Shopping As Customer</a>
+                            </li>
+                        }
+                        else if (isEmployee)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">My Account</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Employee" asp-action="EditAccount">Edit Profile</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Employee" asp-action="ChangePassword">Change Password</a></li>
+                                </ul>
+                            </li>
+                            @if (isManager)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Manager" asp-action="Employees">Employees</a>
+                                </li>
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Employee" asp-action="Customers">Customers</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Employee" asp-action="PendingReviews">Reviews</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Employee" asp-action="SelectCustomer">Purchase</a>
+                            </li>
+                            @if (isManager)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Reports</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="ReportSongsSold">Songs Sold</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="ReportAlbumsSold">Albums Sold</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="ReportTopBands">Top Bands</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Search Music</a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-controller="Songs" asp-action="Index">Songs</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Albums" asp-action="Index">Albums</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Artists" asp-action="Index">Artists</a></li>
+                                </ul>
+                            </li>
+                            @if (isManager)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Manage Music</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="Songs">Songs</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="Albums">Albums</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Manager" asp-action="Artists">Artists</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                    <ul class="navbar-nav">
+                        @if (isCustomer || isEmployee)
+                        {
+                            <li class="nav-item">
+                                @if (isCustomer)
+                                {
+                                    <span class="navbar-text me-3">
+                                        @Context.Session.GetString("UserName")
+                                        @if (isProxyMode)
+                                        {
+                                            <span class="badge role-badge role-badge-employee ms-1">Proxy</span>
+                                        }
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="navbar-text me-3">
+                                        @Context.Session.GetString("UserName")
+                                        @if (isManager) { <span class="badge role-badge role-badge-manager ms-1">Manager</span> }
+                                        else { <span class="badge role-badge role-badge-employee ms-1">Employee</span> }
+                                    </span>
+                                }
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="flex-grow-1 d-flex flex-column">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container">
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        }
+
+        <div class="container flex-grow-1">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted mt-auto">
+        <div class="container">
+            &copy; @DateTime.Now.Year - Bevo's Tunes - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
