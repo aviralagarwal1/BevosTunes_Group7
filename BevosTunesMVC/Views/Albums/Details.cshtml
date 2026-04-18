@@ -1,0 +1,200 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Album Details";
+    var album           = ViewBag.Album as Album;
+    var approvedReviews = ViewBag.ApprovedReviews as List<AlbumReview> ?? new();
+    double avgRating    = ViewBag.AvgRating ?? 0.0;
+    var activeDiscount  = album?.Discounts?.FirstOrDefault(d => d.IsActive);
+    bool isEmployee     = ViewBag.IsEmployee == true;
+    bool isManager      = Context.Session.GetString("IsManager") == "true";
+    bool isCustomer     = Context.Session.GetInt32("CustomerID").HasValue;
+    bool isProxyMode    = Context.Session.GetInt32("ProxyCustomerID").HasValue;
+    bool canAddToCart   = isCustomer && (!isEmployee || isProxyMode);
+    bool inCart         = ViewBag.InCart == true;
+    bool purchased      = ViewBag.Purchased == true;
+    var existingReview  = ViewBag.ExistingReview as AlbumReview;
+}
+
+<h2>@album?.Title</h2>
+@if (!string.IsNullOrEmpty(album?.AlbumCoverURL))
+{
+    <img src="@album.AlbumCoverURL" alt="Album cover" class="img-thumbnail mb-3" style="max-width:200px" />
+}
+
+<dl class="row mt-3">
+    <dt class="col-sm-3">Artist(s)</dt>
+    <dd class="col-sm-9">
+        @foreach (var aa in album?.AlbumArtists ?? Enumerable.Empty<AlbumArtist>())
+        {
+            <a asp-controller="Artists" asp-action="Details" asp-route-id="@aa.ArtistID">@aa.Artist?.Name</a>
+            @if (aa != album!.AlbumArtists.Last()) { <span>, </span> }
+        }
+    </dd>
+
+    <dt class="col-sm-3">Genre(s)</dt>
+    <dd class="col-sm-9">
+        @string.Join(", ", album?.AlbumGenres?.Select(ag => ag.Genre?.Name) ?? Enumerable.Empty<string>())
+    </dd>
+
+    <dt class="col-sm-3">Price</dt>
+    <dd class="col-sm-9">
+        @if (activeDiscount != null)
+        {
+            <span class="text-decoration-line-through text-muted">$@album!.Price.ToString("0.00")</span>
+            <span class="text-success fw-bold ms-2">$@((album.Price - activeDiscount.DiscountAmount).ToString("0.00"))</span>
+            <span class="badge bg-warning text-dark ms-1">Save $@activeDiscount.DiscountAmount.ToString("0.00")</span>
+        }
+        else
+        {
+            <span>$@album?.Price.ToString("0.00")</span>
+        }
+    </dd>
+
+    <dt class="col-sm-3">Average Rating</dt>
+    <dd class="col-sm-9">
+        @if (approvedReviews.Any())
+        { @($"{avgRating:0.0} / 5 ({approvedReviews.Count} review{(approvedReviews.Count == 1 ? "" : "s")})") }
+        else
+        { <span class="text-muted">No reviews yet</span> }
+    </dd>
+</dl>
+
+@* Songs on album *@
+<h4 class="mt-4">Songs on This Album</h4>
+<table class="table table-sm table-striped">
+    <thead class="table-dark"><tr><th>Title</th><th>Artist</th></tr></thead>
+    <tbody>
+        @foreach (var als in album?.AlbumSongs ?? Enumerable.Empty<AlbumSong>())
+        {
+            <tr>
+                <td>
+                    <a asp-controller="Songs" asp-action="Details" asp-route-id="@als.SongID">
+                        @als.Song?.Title
+                    </a>
+                </td>
+                <td>@als.Song?.Artist?.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (isManager)
+{
+    <div class="mb-3">
+        <a class="btn btn-outline-primary" asp-controller="Manager" asp-action="EditAlbum" asp-route-id="@album?.AlbumID">Edit Album</a>
+    </div>
+}
+
+@* Add to Cart *@
+@if (canAddToCart)
+{
+    <div class="mt-3">
+        @if (inCart)
+        {
+            <button class="btn btn-secondary" disabled>Already in cart</button>
+        }
+        else
+        {
+            <form method="post" asp-controller="Cart" asp-action="AddAlbum" style="display:inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="albumId" value="@album?.AlbumID" />
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                <button type="submit" class="btn btn-success">Add Album to Cart</button>
+            </form>
+        }
+    </div>
+}
+
+@* Reviews *@
+@if (approvedReviews.Any())
+{
+    <h4 class="mt-4">Reviews</h4>
+    <table class="table table-striped table-sm">
+        <thead class="table-dark">
+            <tr><th>Customer</th><th>Rating</th><th>Review</th><th>Date</th>
+                @if (isCustomer){ <th></th> }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var review in approvedReviews)
+            {
+                bool isOwn = Context.Session.GetInt32("CustomerID") == review.CustomerID;
+                <tr>
+                    <td>@review.Customer?.FirstName @review.Customer?.LastName</td>
+                    <td>@review.Rating / 5</td>
+                    <td>@review.ReviewText</td>
+                    <td>@review.DateCreated.ToShortDateString()</td>
+                    @if (isOwn)
+                    {
+                        <td>
+                            <a class="btn btn-sm btn-outline-danger" asp-action="ConfirmDeleteReviewText" asp-route-reviewId="@review.AlbumReviewID">Delete text</a>
+                        </td>
+                    }
+                    else if (isCustomer) { <td></td> }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@* Submit / Edit Review *@
+@if (isCustomer && !isEmployee && purchased)
+{
+    <div class="card mt-4" style="max-width:500px">
+        <div class="card-body">
+            @if (existingReview == null)
+            {
+                <h5 class="card-title">Write a Review</h5>
+                <form method="post" asp-action="AddReview" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="albumId" value="@album?.AlbumID" />
+                    <div class="mb-2">
+                        <label class="form-label">Rating (1-5) <span class="text-danger">*</span></label>
+                        <select name="rating" class="form-select" style="width:100px" required>
+                            @for (int i = 1; i <= 5; i++) { <option value="@i">@i</option> }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Review (optional, max 100 chars)</label>
+                        <textarea name="reviewText" class="form-control" maxlength="100" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Submit Review</button>
+                </form>
+            }
+            else
+            {
+                <h5 class="card-title">Edit Your Review
+                    <span class="badge @(existingReview.Status == ReviewStatus.Approved ? "bg-success" : "bg-warning text-dark") ms-2 fs-6">
+                        @existingReview.Status
+                    </span>
+                </h5>
+                <form method="post" asp-action="EditReview" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="reviewId" value="@existingReview.AlbumReviewID" />
+                    <div class="mb-2">
+                        <label class="form-label">Rating (1-5)</label>
+                        <select name="rating" class="form-select" style="width:100px" required>
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <option value="@i" selected="@(existingReview.Rating == i)">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Review text (optional, max 100 chars)</label>
+                        <textarea name="reviewText" class="form-control" maxlength="100" rows="3">@existingReview.ReviewText</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Update Review</button>
+                </form>
+            }
+        </div>
+    </div>
+}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" asp-action="Index">Back to Album Search</a>
+    @if (canAddToCart)
+    {
+        <a class="btn btn-primary ms-2" asp-controller="Cart" asp-action="Index">Checkout</a>
+    }
+</div>
