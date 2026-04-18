@@ -1,0 +1,110 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Home";
+    bool isCustomer = ViewBag.IsCustomer == true;
+}
+
+<div class="text-center mb-4">
+    <h1 class="display-4">Welcome to Bevo's Tunes</h1>
+    @if (isCustomer)
+    {
+        <p class="lead">Here's what's featured today.</p>
+    }
+    else
+    {
+        <p class="lead">Browse our catalog below, or <a asp-controller="Account" asp-action="Login">log in</a> to purchase music.</p>
+    }
+</div>
+
+@if (isCustomer)
+{
+    var featured = ViewBag.FeaturedItems as List<FeaturedItem> ?? new();
+    @if (!featured.Any())
+    {
+        <p class="text-muted">No featured items right now. <a asp-controller="Songs" asp-action="Index">Browse songs</a>.</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var fi in featured)
+            {
+                <div class="col">
+                    <div class="card h-100">
+                        @if (fi.Song != null)
+                        {
+                            var d = fi.Song.Discounts.FirstOrDefault();
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1 text-muted">Featured Song</h6>
+                                <h5 class="card-title">@fi.Song.Title</h5>
+                                <p class="card-text text-muted mb-1">@fi.Song.Artist?.Name</p>
+                                @if (d != null)
+                                {
+                                    <p><span class="text-decoration-line-through text-muted">$@fi.Song.Price.ToString("0.00")</span>
+                                       <span class="text-success fw-bold ms-1">$@((fi.Song.Price - d.DiscountAmount).ToString("0.00"))</span></p>
+                                }
+                                else { <p>$@fi.Song.Price.ToString("0.00")</p> }
+                                <a asp-controller="Songs" asp-action="Details" asp-route-id="@fi.Song.SongID"
+                                   class="btn btn-sm btn-primary">View Song</a>
+                            </div>
+                        }
+                        else if (fi.Album != null)
+                        {
+                            var d = fi.Album.Discounts.FirstOrDefault();
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1 text-muted">Featured Album</h6>
+                                <h5 class="card-title">@fi.Album.Title</h5>
+                                <p class="card-text text-muted mb-1">@string.Join(", ", fi.Album.AlbumArtists.Select(aa => aa.Artist?.Name))</p>
+                                @if (d != null)
+                                {
+                                    <p><span class="text-decoration-line-through text-muted">$@fi.Album.Price.ToString("0.00")</span>
+                                       <span class="text-success fw-bold ms-1">$@((fi.Album.Price - d.DiscountAmount).ToString("0.00"))</span></p>
+                                }
+                                else { <p>$@fi.Album.Price.ToString("0.00")</p> }
+                                <a asp-controller="Albums" asp-action="Details" asp-route-id="@fi.Album.AlbumID"
+                                   class="btn btn-sm btn-primary">View Album</a>
+                            </div>
+                        }
+                        else if (fi.Artist != null)
+                        {
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-1 text-muted">Featured Artist</h6>
+                                <h5 class="card-title">@fi.Artist.Name</h5>
+                                <a asp-controller="Artists" asp-action="Details" asp-route-id="@fi.Artist.ArtistID"
+                                   class="btn btn-sm btn-primary">View Artist</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+else
+{
+    @* Anonymous: full song list *@
+    var songs = ViewBag.Songs as IEnumerable<Song> ?? Enumerable.Empty<Song>();
+    <h4 class="mt-3">Songs <span class="badge bg-secondary">@songs.Count()</span></h4>
+    <table class="table table-striped table-sm">
+        <thead class="table-dark">
+            <tr><th>Title</th><th>Artist</th><th>Price</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var song in songs)
+            {
+                var d = song.Discounts?.FirstOrDefault();
+                var price = d != null ? song.Price - d.DiscountAmount : song.Price;
+                <tr>
+                    <td>@song.Title</td>
+                    <td>@song.Artist?.Name</td>
+                    <td>$@price.ToString("0.00")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           asp-controller="Songs" asp-action="Details" asp-route-id="@song.SongID">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
