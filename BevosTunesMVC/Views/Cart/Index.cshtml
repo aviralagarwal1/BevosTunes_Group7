@@ -1,0 +1,117 @@
+@using BevosTunesMVC.Models
+@model IEnumerable<BevosTunesMVC.Models.CartItem>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal subtotal = ViewBag.Subtotal ?? 0m;
+    decimal tax      = ViewBag.Tax ?? 0m;
+    decimal total    = ViewBag.Total ?? 0m;
+    var duplicateSongs = ViewBag.DuplicateSongs as List<string> ?? new();
+}
+
+<h2>Shopping Cart</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info mt-3">Your cart is empty. <a asp-controller="Songs" asp-action="Index">Browse songs</a> or <a asp-controller="Albums" asp-action="Index">albums</a>.</div>
+}
+else
+{
+    @if (duplicateSongs.Any())
+    {
+        <div class="alert alert-danger mt-3">
+            <h5 class="alert-heading">Duplicate Songs Detected</h5>
+            <p>
+                These songs are in your cart individually and also inside an album.
+                Remove either the individual song or the album before checkout can be completed.
+            </p>
+            <ul class="mb-0">
+                @foreach (var song in duplicateSongs)
+                {
+                    <li><strong>@song</strong></li>
+                }
+            </ul>
+        </div>
+    }
+
+    <table class="table table-sm mt-3 purchase-flow-table">
+        <thead class="table-dark">
+            <tr>
+                <th>Item</th>
+                <th>Artist</th>
+                <th>Rating</th>
+                <th>Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                decimal price;
+                string itemName;
+                string artistName;
+                double avgRating = 0;
+                string? discountNote = null;
+
+                if (item.Song != null)
+                {
+                    var d = item.Song.Discounts.FirstOrDefault();
+                    price = d != null ? item.Song.Price - d.DiscountAmount : item.Song.Price;
+                    itemName = item.Song.Title;
+                    artistName = item.Song.Artist?.Name ?? "";
+                    var approved = item.Song.SongReviews.Where(r => r.Status == ReviewStatus.Approved).ToList();
+                    if (approved.Any()) avgRating = approved.Average(r => r.Rating);
+                    if (d != null) discountNote = $"${d.DiscountAmount:0.00} off (was ${item.Song.Price:0.00})";
+                }
+                else if (item.Album != null)
+                {
+                    var d = item.Album.Discounts.FirstOrDefault();
+                    price = d != null ? item.Album.Price - d.DiscountAmount : item.Album.Price;
+                    itemName = item.Album.Title;
+                    artistName = string.Join(", ", item.Album.AlbumArtists.Select(aa => aa.Artist?.Name));
+                    var approved = item.Album.AlbumReviews.Where(r => r.Status == ReviewStatus.Approved).ToList();
+                    if (approved.Any()) avgRating = approved.Average(r => r.Rating);
+                    if (d != null) discountNote = $"${d.DiscountAmount:0.00} off (was ${item.Album.Price:0.00})";
+                }
+                else
+                {
+                    continue;
+                }
+
+                <tr>
+                    <td>
+                        @itemName
+                        @if (discountNote != null)
+                        {
+                            <span class="badge bg-warning text-dark ms-1">@discountNote</span>
+                        }
+                    </td>
+                    <td>@artistName</td>
+                    <td>@(avgRating > 0 ? $"{avgRating:0.0}" : "-")</td>
+                    <td class="@(discountNote != null ? "text-success fw-bold" : "")">$@price.ToString("0.00")</td>
+                    <td>
+                        <a class="btn btn-sm btn-danger" asp-action="ConfirmRemove" asp-route-cartItemId="@item.CartItemID">Remove</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="text-end fw-semibold">Subtotal:</td>
+                <td colspan="2">$@subtotal.ToString("0.00")</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-end fw-semibold">Tax (8.25%):</td>
+                <td colspan="2">$@tax.ToString("0.00")</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-end fw-bold">Total:</td>
+                <td colspan="2" class="fw-bold">$@total.ToString("0.00")</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <a class="btn btn-success mt-2 @(duplicateSongs.Any() ? "disabled" : "")"
+       asp-controller="Checkout"
+       asp-action="Index"
+       aria-disabled="@(duplicateSongs.Any() ? "true" : "false")">Proceed to Checkout</a>
+}
