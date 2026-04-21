@@ -1,0 +1,59 @@
+@using BevosTunesMVC.Models
+@model BevosTunesMVC.Models.Order
+@{
+    ViewData["Title"] = "Order Confirmation";
+    decimal subtotal = ViewBag.Subtotal ?? 0m;
+    decimal tax = ViewBag.Tax ?? 0m;
+    decimal total = ViewBag.Total ?? 0m;
+}
+
+<div class="text-center mt-4">
+    <h2 class="text-success">Thank you for your order!</h2>
+    <h4>Order Confirmation #@Model.OrderID</h4>
+    <p class="text-muted">A confirmation email has been sent to you.</p>
+</div>
+
+<div class="mt-4">
+    <h5>Order Details</h5>
+    <table class="table table-sm purchase-flow-table">
+        <thead class="table-dark"><tr><th>Item</th><th>Price</th></tr></thead>
+        <tbody>
+            @foreach (var item in Model.OrderItems)
+            {
+                <tr>
+                    <td>
+                        @if (item.Song != null) { <span>@item.Song.Title</span> }
+                        @if (item.Album != null) { <span>@item.Album.Title</span> }
+                    </td>
+                    <td>$@item.Price.ToString("0.00")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr><td class="text-end fw-semibold">Subtotal:</td><td>$@subtotal.ToString("0.00")</td></tr>
+            <tr><td class="text-end fw-semibold">Tax:</td><td>$@tax.ToString("0.00")</td></tr>
+            <tr><td class="text-end fw-bold">Total:</td><td class="fw-bold">$@total.ToString("0.00")</td></tr>
+        </tfoot>
+    </table>
+
+    @if (Model.CreditCard != null)
+    {
+        <p><strong>Card:</strong> **** **** **** @Model.CreditCard.CardNumber[^4..] (@Model.CreditCard.DisplayCardType)</p>
+    }
+    @if (Model.IsGift)
+    {
+        <p><strong>Gift to:</strong> @Model.GiftRecipientEmail</p>
+    }
+</div>
+
+<div class="mt-4">
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Index">Back to Home</a>
+    <a class="btn btn-primary ms-2" asp-controller="Account" asp-action="OrderHistory">Order History</a>
+    @if (!Model.IsRefunded)
+    {
+        <a class="btn btn-danger ms-2"
+           asp-controller="Checkout"
+           asp-action="Refund"
+           asp-route-orderId="@Model.OrderID">Refund Entire Order</a>
+    }
+</div>

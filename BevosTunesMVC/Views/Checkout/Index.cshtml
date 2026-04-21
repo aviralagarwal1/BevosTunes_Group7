@@ -1,0 +1,112 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Checkout";
+    var cartItems = ViewBag.CartItems as List<CartItem> ?? new();
+    var cards = ViewBag.Cards as List<CreditCard> ?? new();
+    decimal subtotal = ViewBag.Subtotal ?? 0m;
+    decimal tax = ViewBag.Tax ?? 0m;
+    decimal total = ViewBag.Total ?? 0m;
+    int? selectedExistingCardId = ViewBag.SelectedExistingCardId;
+    string newCardNumber = ViewBag.NewCardNumber ?? "";
+    bool isGift = ViewBag.IsGift == true;
+    string giftEmail = ViewBag.GiftEmail ?? "";
+    bool showNewCardDetails = !string.IsNullOrWhiteSpace(newCardNumber);
+}
+
+<h2>Checkout</h2>
+
+<h5 class="mt-3">Order Summary</h5>
+<table class="table table-sm purchase-flow-table">
+    <thead class="table-dark"><tr><th>Item</th><th>Price</th></tr></thead>
+    <tbody>
+        @foreach (var ci in cartItems)
+        {
+            decimal price;
+            string name;
+            if (ci.Song != null)
+            {
+                var d = ci.Song.Discounts.FirstOrDefault();
+                price = d != null ? ci.Song.Price - d.DiscountAmount : ci.Song.Price;
+                name = ci.Song.Title;
+            }
+            else if (ci.Album != null)
+            {
+                var d = ci.Album.Discounts.FirstOrDefault();
+                price = d != null ? ci.Album.Price - d.DiscountAmount : ci.Album.Price;
+                name = ci.Album.Title;
+            }
+            else
+            {
+                continue;
+            }
+            <tr><td>@name</td><td>$@price.ToString("0.00")</td></tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr><td class="text-end fw-semibold">Subtotal:</td><td>$@subtotal.ToString("0.00")</td></tr>
+        <tr><td class="text-end fw-semibold">Tax (8.25%):</td><td>$@tax.ToString("0.00")</td></tr>
+        <tr><td class="text-end fw-bold">Total:</td><td class="fw-bold">$@total.ToString("0.00")</td></tr>
+    </tfoot>
+</table>
+
+<form method="post" asp-action="Confirm" class="mt-4" style="max-width:600px" novalidate>
+    @Html.AntiForgeryToken()
+
+    <h5>Payment</h5>
+    @if (cards.Any())
+    {
+        <div class="mb-2">
+            <label class="form-label">Use a card on file:</label>
+            @foreach (var card in cards)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="existingCardId"
+                           value="@card.CreditCardID" id="card_@card.CreditCardID"
+                           @(selectedExistingCardId == card.CreditCardID ? "checked" : "") />
+                    <label class="form-check-label" for="card_@card.CreditCardID">
+                        **** **** **** @card.CardNumber[^4..] - @card.DisplayCardType
+                    </label>
+                </div>
+            }
+        </div>
+
+        <details class="mb-3" @(showNewCardDetails ? "open" : "")>
+            <summary>Use a different card</summary>
+            <div class="mt-2">
+                <label class="form-label" for="newCardNumber">Card Number</label>
+                <input type="text" name="newCardNumber" id="newCardNumber" class="form-control"
+                       value="@newCardNumber" maxlength="16" minlength="15" inputmode="numeric" autocomplete="cc-number"
+                       pattern="[0-9]{15,16}" title="Enter 15 or 16 digits."
+                       placeholder="4242424242424242" style="max-width:300px" />
+                <div class="form-text">If you enter a different card here, checkout will use it instead of a saved card.</div>
+            </div>
+        </details>
+    }
+    else
+    {
+        <div class="mb-3">
+            <label class="form-label" for="newCardNumber">Card Number</label>
+            <input type="text" name="newCardNumber" id="newCardNumber" class="form-control"
+                   value="@newCardNumber" required maxlength="16" minlength="15" inputmode="numeric" autocomplete="cc-number"
+                   pattern="[0-9]{15,16}" title="Enter 15 or 16 digits."
+                   placeholder="4242424242424242" style="max-width:300px" />
+            <div class="form-text">Visa (starts 4), Mastercard (starts 54), Discover (starts 6), Amex is 15 digits.</div>
+        </div>
+    }
+
+    <h5 class="mt-4">Gift?</h5>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" name="isGift" value="true" id="isGift"
+               @(isGift ? "checked" : "") />
+        <label class="form-check-label" for="isGift">This is a gift for another customer</label>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Recipient Email</label>
+        <input type="email" name="giftEmail" class="form-control" value="@giftEmail" style="max-width:420px"
+               placeholder="Only required if this order is a gift" />
+        <div class="form-text">If you check the gift box, this email must match a registered Bevo's Tunes customer.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Review Order</button>
+    <a class="btn btn-secondary mt-2 ms-2" asp-controller="Cart" asp-action="Index">Back to Cart</a>
+</form>

@@ -1,0 +1,29 @@
+@using BevosTunesMVC.Models
+@model BevosTunesMVC.Models.Order
+@{ ViewData["Title"] = "Refund Order"; }
+
+<h2>Refund Entire Order #@Model.OrderID</h2>
+<p>This refund applies to the entire order. All music from this order will be removed from your account.</p>
+
+<table class="table table-sm table-striped mt-3" style="max-width:500px">
+    <thead class="table-dark"><tr><th>Item</th><th>Price</th></tr></thead>
+    <tbody>
+        @foreach (var item in Model.OrderItems)
+        {
+            <tr>
+                <td>
+                    @if (item.Song != null) { <span>@item.Song.Title</span> }
+                    @if (item.Album != null) { <span>@item.Album.Title</span> }
+                </td>
+                <td>$@item.Price.ToString("0.00")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="orderId" value="@Model.OrderID" />
+    <button type="submit" class="btn btn-danger">Yes, Refund This Order</button>
+    <a class="btn btn-secondary ms-2" asp-controller="Account" asp-action="OrderHistory">Cancel</a>
+</form>

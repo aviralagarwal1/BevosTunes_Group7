@@ -1,0 +1,19 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Duplicate Songs in Cart";
+    var dupes     = ViewBag.DuplicateSongs as List<string> ?? new();
+    var cartItems = ViewBag.CartItems as List<CartItem> ?? new();
+}
+
+<div class="alert alert-danger mt-3">
+    <h4 class="alert-heading">Duplicate Songs Detected</h4>
+    <p>The following songs appear both individually and as part of an album in your cart. You must remove the duplicates before checking out:</p>
+    <ul>
+        @foreach (var name in dupes)
+        {
+            <li><strong>@name</strong></li>
+        }
+    </ul>
+</div>
+
+<a class="btn btn-primary" asp-controller="Cart" asp-action="Index">Go Back to Cart</a>
