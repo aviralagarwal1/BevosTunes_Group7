@@ -1,0 +1,30 @@
+@model IEnumerable<BevosTunesMVC.Models.Album>
+@{ ViewData["Title"] = "Manage Albums"; }
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Albums</h2>
+    <a class="btn btn-success btn-sm" asp-action="AddAlbum">+ Add Album</a>
+</div>
+
+<table class="table table-striped table-sm">
+    <thead class="table-dark">
+        <tr><th>Title</th><th>Artist(s)</th><th>Price</th><th>Active?</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr class="@(a.IsActive ? "" : "table-secondary text-muted")">
+                <td>@a.Title</td>
+                <td>@string.Join(", ", a.AlbumArtists.Select(aa => aa.Artist?.Name ?? ""))</td>
+                <td>$@a.Price.ToString("0.00")</td>
+                <td>@(a.IsActive ? "Yes" : "No")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="EditAlbum" asp-route-id="@a.AlbumID">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p class="text-muted">@Model.Count() albums total</p>
+
+<a class="btn btn-secondary" asp-action="Dashboard" asp-controller="Employee">Back to Dashboard</a>

@@ -1,0 +1,70 @@
+@using BevosTunesMVC.Models
+@model BevosTunesMVC.Models.Song
+@{
+    ViewData["Title"] = "Edit Song";
+    var selectedGenres = ViewBag.SelectedGenres as int[] ?? Array.Empty<int>();
+    int? selectedArtistId = ViewBag.SelectedArtistId is int artistId ? artistId : Model.ArtistID;
+    string titleValue = ViewBag.TitleValue ?? Model.Title;
+    string priceValue = ViewBag.PriceValue ?? Model.Price.ToString("0.00");
+    bool isActiveValue = ViewBag.IsActiveValue is bool active ? active : Model.IsActive;
+}
+
+<h2>Edit Song</h2>
+@if (ViewBag.Error != null) { <div class="alert alert-danger">@ViewBag.Error</div> }
+
+<form method="post" asp-action="EditSong" class="mt-3" style="max-width:560px" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="songId" value="@Model.SongID" />
+
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" value="@titleValue" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Price ($)</label>
+        <input type="number" name="price" class="form-control" step="0.01" min="0.01" value="@priceValue" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Artist</label>
+        <select name="artistId" class="form-select" required>
+            @foreach (Artist a in ViewBag.Artists)
+            {
+                <option value="@a.ArtistID" selected="@(a.ArtistID == selectedArtistId)">@a.Name</option>
+            }
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Genres</label>
+        <div class="border rounded p-2" style="max-height:200px;overflow-y:auto">
+            @foreach (Genre g in ViewBag.Genres)
+            {
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="genreIds"
+                           value="@g.GenreID" id="g@(g.GenreID)"
+                           @(selectedGenres.Contains(g.GenreID) ? "checked" : "") />
+                    <label class="form-check-label" for="g@(g.GenreID)">@g.Name</label>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="isActive" class="form-check-input" id="isActiveCheck"
+               value="true" @(isActiveValue ? "checked" : "") />
+        <label class="form-check-label" for="isActiveCheck">Active</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a class="btn btn-secondary ms-2" asp-action="Songs">Cancel</a>
+</form>
+
+<hr class="mt-4" style="max-width:560px" />
+<h6>Add a New Genre</h6>
+<form method="post" asp-action="AddGenre" style="max-width:400px" class="d-flex gap-2" novalidate>
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="returnAction" value="EditSong" />
+    <input type="hidden" name="returnController" value="Manager" />
+    <input type="hidden" name="returnId" value="@Model.SongID" />
+    <div class="flex-grow-1">
+        <input type="text" name="name" class="form-control form-control-sm" placeholder="Genre name" required />
+    </div>
+    <button type="submit" class="btn btn-outline-secondary btn-sm">Add Genre</button>
+</form>

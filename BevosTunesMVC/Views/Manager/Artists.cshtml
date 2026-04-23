@@ -1,0 +1,27 @@
+@model IEnumerable<BevosTunesMVC.Models.Artist>
+@{ ViewData["Title"] = "Manage Artists"; }
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Artists</h2>
+    <a class="btn btn-success btn-sm" asp-action="AddArtist">+ Add Artist</a>
+</div>
+
+<table class="table table-striped table-sm">
+    <thead class="table-dark">
+        <tr><th>Name</th><th></th></tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.Name</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="EditArtist" asp-route-id="@a.ArtistID">Edit</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<p class="text-muted">@Model.Count() artists total</p>
+
+<a class="btn btn-secondary" asp-action="Dashboard" asp-controller="Employee">Back to Dashboard</a>
