@@ -1,0 +1,100 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Employee Dashboard";
+    var employee  = ViewBag.Employee as Employee;
+    bool isMgr    = ViewBag.IsManager == true;
+}
+
+<h2>Employee Dashboard</h2>
+<p class="text-muted">Welcome, @employee?.FirstName @employee?.LastName
+    @if (isMgr) { <span class="badge role-badge role-badge-manager ms-1">Manager</span> }</p>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">My Account</h5>
+                <a class="btn btn-secondary btn-sm me-1" asp-action="EditAccount">Edit Profile</a>
+                <a class="btn btn-secondary btn-sm" asp-action="ChangePassword">Change Password</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Customers</h5>
+                <a class="btn btn-secondary btn-sm me-1" asp-action="Customers">Manage Customers</a>
+                <a class="btn btn-secondary btn-sm" asp-action="CreateCustomer">Create Customers</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Reviews
+                    @{
+                        int pendingTotal = (int)(ViewBag.PendingSongReviews ?? 0) +
+                                           (int)(ViewBag.PendingAlbumReviews ?? 0) +
+                                           (int)(ViewBag.PendingArtistReviews ?? 0);
+                    }
+                    @if (pendingTotal > 0)
+                    {
+                        <span class="badge bg-danger">@pendingTotal pending</span>
+                    }
+                </h5>
+                <a class="btn btn-secondary btn-sm" asp-action="PendingReviews">Approve Reviews</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Purchase for Customers</h5>
+                <a class="btn btn-secondary btn-sm" asp-action="SelectCustomer">Select Customers</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Search Music</h5>
+                <a class="btn btn-secondary btn-sm me-1" asp-controller="Songs" asp-action="Index">Songs</a>
+                <a class="btn btn-secondary btn-sm me-1" asp-controller="Albums" asp-action="Index">Albums</a>
+                <a class="btn btn-secondary btn-sm" asp-controller="Artists" asp-action="Index">Artists</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (isMgr)
+{
+    <h4 class="mt-5">Management</h4>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Employees</h5>
+                    <a class="btn btn-secondary btn-sm" asp-controller="Manager" asp-action="Employees">Manage Employees</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Catalog</h5>
+                    <a class="btn btn-secondary btn-sm me-1" asp-controller="Manager" asp-action="Songs">Songs</a>
+                    <a class="btn btn-secondary btn-sm me-1" asp-controller="Manager" asp-action="Albums">Albums</a>
+                    <a class="btn btn-secondary btn-sm" asp-controller="Manager" asp-action="Artists">Artists</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Promotions</h5>
+                    <a class="btn btn-secondary btn-sm" asp-controller="Manager" asp-action="Promotions">Manage Promotions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
