@@ -1,0 +1,54 @@
+@{ ViewData["Title"] = "Hire Employee"; }
+
+<h2>Hire New Employee</h2>
+@if (ViewBag.Error != null) { <div class="alert alert-danger">@ViewBag.Error</div> }
+
+<form method="post" asp-action="HireEmployee" class="mt-3" style="max-width:540px" novalidate>
+    @Html.AntiForgeryToken()
+    <div class="row">
+        <div class="col mb-3">
+            <label class="form-label">First Name</label>
+            <input type="text" name="firstName" class="form-control" value="@ViewBag.FirstName" required />
+        </div>
+        <div class="col mb-3">
+            <label class="form-label">Last Name</label>
+            <input type="text" name="lastName" class="form-control" value="@ViewBag.LastName" required />
+        </div>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" name="email" class="form-control" value="@ViewBag.Email" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="text" name="password" class="form-control" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Phone Number</label>
+        <input type="text" name="phoneNumber" class="form-control" value="@ViewBag.PhoneNumber" required />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Street</label>
+        <input type="text" name="street" class="form-control" value="@ViewBag.Street" required />
+    </div>
+    <div class="row">
+        <div class="col mb-3">
+            <label class="form-label">City</label>
+            <input type="text" name="city" class="form-control" value="@ViewBag.City" required />
+        </div>
+        <div class="col-3 mb-3">
+            <label class="form-label">State</label>
+            <input type="text" name="state" class="form-control" value="@ViewBag.State" maxlength="2" required />
+        </div>
+        <div class="col mb-3">
+            <label class="form-label">ZIP</label>
+            <input type="text" name="zipCode" class="form-control" value="@ViewBag.ZipCode" required />
+        </div>
+    </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="isManager" class="form-check-input" id="isManagerCheck" value="true" @(ViewBag.IsManagerValue == true ? "checked" : "") />
+        <label class="form-check-label" for="isManagerCheck">Hire as Manager</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Hire</button>
+    <a class="btn btn-secondary ms-2" asp-action="Employees">Cancel</a>
+</form>
