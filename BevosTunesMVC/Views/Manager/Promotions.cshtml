@@ -1,0 +1,201 @@
+@using BevosTunesMVC.Models
+@{
+    ViewData["Title"] = "Promotions";
+    var featured = ViewBag.FeaturedItems as List<FeaturedItem> ?? new();
+    var activeFeatured = featured.Where(f => f.IsActive).ToList();
+    var discounts = ViewBag.Discounts as List<Discount> ?? new();
+    int activeDiscountCount = discounts.Count(d => d.IsActive);
+}
+
+<div class="admin-page-header">
+    <div>
+        <h2>Promotions</h2>
+        <p class="admin-page-subtitle">Manage featured catalog items and catalog discounts.</p>
+    </div>
+</div>
+
+<div class="admin-summary-grid">
+    <div class="admin-summary-card">
+        <div class="admin-summary-label">Active Featured</div>
+        <div class="admin-summary-value">@activeFeatured.Count</div>
+    </div>
+    <div class="admin-summary-card">
+        <div class="admin-summary-label">Active Discounts</div>
+        <div class="admin-summary-value">@activeDiscountCount</div>
+    </div>
+    <div class="admin-summary-card">
+        <div class="admin-summary-label">Total Discounts</div>
+        <div class="admin-summary-value">@discounts.Count</div>
+    </div>
+</div>
+
+<div class="admin-section-card">
+    <div class="admin-section-title">Featured Items</div>
+    <p class="text-muted">Feature songs, albums, and artists independently. Duplicate active featured items are not allowed.</p>
+
+    @if (activeFeatured.Any())
+    {
+        <div class="alert alert-info">
+            <strong>Currently featured:</strong>
+            @string.Join(", ", activeFeatured.Select(f =>
+                f.Song != null ? $"Song - {f.Song.Title}" :
+                f.Album != null ? $"Album - {f.Album.Title}" :
+                f.Artist != null ? $"Artist - {f.Artist.Name}" :
+                "Unknown"))
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-secondary">No active featured item.</div>
+    }
+
+    <form method="post" asp-action="SetFeatured" class="row g-2 align-items-end" style="max-width:700px" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="col">
+            <label class="form-label">Feature a Song</label>
+            <select name="songId" class="form-select form-select-sm">
+                <option value="">-- None --</option>
+                @foreach (Song song in ViewBag.Songs)
+                {
+                    <option value="@song.SongID">@song.Title</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <label class="form-label">Feature an Album</label>
+            <select name="albumId" class="form-select form-select-sm">
+                <option value="">-- None --</option>
+                @foreach (Album album in ViewBag.Albums)
+                {
+                    <option value="@album.AlbumID">@album.Title</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <label class="form-label">Feature an Artist</label>
+            <select name="artistId" class="form-select form-select-sm">
+                <option value="">-- None --</option>
+                @foreach (Artist artist in ViewBag.Artists)
+                {
+                    <option value="@artist.ArtistID">@artist.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Add Featured</button>
+        </div>
+    </form>
+
+    @if (featured.Any())
+    {
+        <div class="admin-table-wrap mt-4">
+            <table class="table table-striped table-sm">
+                <thead class="table-dark">
+                    <tr><th>Item</th><th>Type</th><th>Active?</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in featured)
+                    {
+                        var itemName = item.Song?.Title ?? item.Album?.Title ?? item.Artist?.Name ?? "-";
+                        var itemType = item.SongID.HasValue ? "Song" : item.AlbumID.HasValue ? "Album" : item.ArtistID.HasValue ? "Artist" : "-";
+                        <tr class="@(item.IsActive ? "" : "table-secondary text-muted")">
+                            <td>@itemName</td>
+                            <td>@itemType</td>
+                            <td>@(item.IsActive ? "Yes" : "No")</td>
+                            <td>
+                                <form method="post" asp-action="ToggleFeatured">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="featuredItemId" value="@item.FeaturedItemID" />
+                                    <button type="submit" class="btn btn-sm @(item.IsActive ? "btn-secondary" : "btn-outline-secondary")">
+                                        @(item.IsActive ? "Disable" : "Enable")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="admin-section-card">
+    <div class="admin-section-title">Discounts</div>
+    <p class="text-muted">Add, adjust, disable, or re-enable discounts without removing historical records.</p>
+
+    <form method="post" asp-action="AddDiscount" class="row g-2 align-items-end mb-4" style="max-width:700px" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="col">
+            <label class="form-label">Song</label>
+            <select name="songId" class="form-select form-select-sm">
+                <option value="">-- None --</option>
+                @foreach (Song song in ViewBag.Songs)
+                {
+                    <option value="@song.SongID">@song.Title</option>
+                }
+            </select>
+        </div>
+        <div class="col">
+            <label class="form-label">Album</label>
+            <select name="albumId" class="form-select form-select-sm">
+                <option value="">-- None --</option>
+                @foreach (Album album in ViewBag.Albums)
+                {
+                    <option value="@album.AlbumID">@album.Title</option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <label class="form-label">Amount ($)</label>
+            <input type="number" name="discountAmount" class="form-control form-control-sm" step="0.01" min="0.01" style="width:90px" required />
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Add Discount</button>
+        </div>
+    </form>
+
+    @if (discounts.Any())
+    {
+        <div class="admin-table-wrap">
+            <table class="table table-striped table-sm">
+                <thead class="table-dark">
+                    <tr><th>Item</th><th>Type</th><th>Amount</th><th>Active?</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var discount in discounts)
+                    {
+                        <tr class="@(discount.IsActive ? "" : "table-secondary text-muted")">
+                            <td>@(discount.Song?.Title ?? discount.Album?.Title ?? "-")</td>
+                            <td>@(discount.SongID.HasValue ? "Song" : discount.AlbumID.HasValue ? "Album" : "-")</td>
+                            <td>
+                                <form method="post" asp-action="EditDiscount" class="d-flex gap-1" novalidate>
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="discountId" value="@discount.DiscountID" />
+                                    <input type="number" name="discountAmount" class="form-control form-control-sm"
+                                           step="0.01" min="0.01" value="@discount.DiscountAmount" style="width:90px" required />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Save</button>
+                                </form>
+                            </td>
+                            <td>@(discount.IsActive ? "Yes" : "No")</td>
+                            <td>
+                                <form method="post" asp-action="ToggleDiscount">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="discountId" value="@discount.DiscountID" />
+                                    <button type="submit" class="btn btn-sm @(discount.IsActive ? "btn-secondary" : "btn-outline-secondary")">
+                                        @(discount.IsActive ? "Disable" : "Enable")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No discounts yet.</p>
+    }
+</div>
+
+<a class="btn btn-secondary" asp-action="Dashboard" asp-controller="Employee">Back to Dashboard</a>
