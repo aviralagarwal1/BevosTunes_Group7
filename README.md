@@ -101,7 +101,7 @@ The original Azure App Service and Azure SQL instance have been retired. Pushes 
 
 ## Acknowledgements
 
-Bevo's Tunes was built by Group 7 as the final project for MIS 333K at the University of Texas at Austin in Spring 2026. The course provided the requirements and seed data. The project was graded live against 200 spec test cases, passed 96% of them, and placed first among all MIS 333K teams that semester, which came with a $2,000 prize. Special thanks to Professor Jawad and the MIS 333K TAs for their help throughout the semester.
+Bevo's Tunes was built by Group 7 as the final project for MIS 333K at the University of Texas at Austin in Spring 2026. The course provided the requirements and seed data. The project was graded live against 200 spec test cases, passed 98% of them, and ranked 1st out of all teams in the Spring 2026 semester in MIS 333K, which came with a $2,000 prize. Special thanks to Professor Jawad and the MIS 333K TAs for their help throughout the semester.
 
 **Group 7:** Aviral Agarwal, Samhith Dharani, Shriya Punreddy, Raya Bhattacharyya
 
