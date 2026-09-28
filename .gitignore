@@ -34,10 +34,12 @@ __pycache__/
 *.log
 
 ## Local app configuration (copy from appsettings.Development.json.example)
+*.pubxml.user
+*.PublishSettings
 BevosTunesMVC/appsettings.Development.json
 BevosTunesMVC/appsettings.*.local.json
 
-## Local-only docs and agent instructions (README.md is the only public doc)
+## Local-only docs and agent instructions (public course references live in /course/)
 /docs/
 /AGENTS.md
 /CLAUDE.md
