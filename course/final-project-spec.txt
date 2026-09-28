@@ -1,0 +1,651 @@
+Background
+
+Bevo’s Tunes (BT) is a Texas-based music sales and management company.
+The company is just starting up, and wants your help designing a website
+for their users. They hope customers will use the website to buy all of
+their favorite music. To prevent illegal sharing, all music is stored in
+their database and playing using the player on their website. They’re
+going to build the music player in-house, and use a separate database to
+store all the music, but they want your team to set up everything else.
+
+The system has three basic roles: customers, employees, and managers.
+Customers can search for music and manage their music collections.
+Employees manage customers and maintain the website. Managers manage
+employees and monitor the health of the business with reports.
+
+The system should be a C#-based ASP.NET Core MVC website using a SQL
+Server Database hosted on one of your team member’s Azure account. The
+website should also be hosted in an Azure account. You should consider
+adding your team members as administrators to the main Azure account.
+
+Professor and the TAs will be your first contacts for requirements
+questions. Requirements are subject to change/clarification as the
+project progresses. Professor will have final say on everything. The
+Slack channel (#final-project) will be the official medium for
+communication about requirements. No requirements change/clarification
+is official unless it has been posted on Slack.
+
+Customer Functionality
+
+A customer will log in with his email and password. Login is not
+required for any customer pages (i.e. browsing) unless they want to
+purchase a song/album or view their music collection. Upon successful
+login, the customer should be met with a welcome page advertising the
+current featured songs and albums.
+
+Create Account
+
+Email, password, first name, last name, address, and phone number are
+required. City and state are automatically generated based on zip code.
+
+Modify/Manage Account
+
+-   View account information
+
+-   Modify first and last name, email, address and phone number
+
+-   Change password – requires verification by entering old password.
+
+-   The customer may choose to store information for up to two credit
+    cards
+
+    -   Allowed types are Visa, American Express, Discover, and
+        MasterCard
+
+    -   Credit cards are 16 digits, except for American Express, which
+        is 15 digits
+
+    -   The system will automatically detect what type of credit card it
+        is based on the following formula:
+
+        -   MasterCard, Visa, and Discover are 16 digits
+
+            -   MasterCard starts with 54
+
+            -   Visa starts with 4
+
+            -   Discover starts with 6
+
+        -   Amex is 15 digits
+
+Music Search
+
+The customer should have a search page available to them to search
+through BT’s music database. This database contains all individual
+songs, albums, and bands that BT holds the rights to, as well as any
+current discounts.
+
+General Search Page Requirements
+
+-   These requirements are applicable to all three search pages (song,
+    album, and artist)
+
+-   When searching for songs, albums, or artists, multiple selections
+    should be handled as AND searches. For example, searching title and
+    artist for songs will return records that have both matching fields.
+
+-   Users should be able to search all items by genre and be able to
+    select multiple genres. This should match all songs with at least
+    one of those genres.
+
+-   The list of genres from which users can select should reflect the
+    genres actually in the database. This list should not be hard coded.
+
+-   For all searches, users can specify less than or greater than and a
+    decimal between 1.0 and 5.0 inclusive. This should return items
+    whose average rating matches the specified criteria.
+
+-   For all queries on all search pages, specify how many records are
+    returned. All search results should have a message that says
+    “Displaying X of Y songs/artists/etc.”
+
+-   Any time the user is given a textbox for search, you must make sure
+    that this textbox can accept SQL characters such as ‘ and % without
+    breaking.
+
+Song Search
+
+-   Individual songs may be searched by any combination of the
+    following: Title, Genre, Artist, Album, Rating
+
+    -   For name, artist, and album, customers can do a keyword search.
+        If the customer is searching for multiples of these fields, it
+        is an AND search.
+
+    -   Any given song can belong to multiple albums. You do NOT need to
+        record the track number on the album.
+
+    -   Search results should display Title, Artist, Rating, and Price.
+        Since multiple genres and albums are possible, these fields need
+        not be displayed in search results.
+
+-   User should be able to sort search results by ascending/descending:
+    name, artist and rating
+
+-   Clicking on the song in the search result will take the user to
+    details for that song, which includes:
+
+    -   Name, artist, album(s), genre(s), rating and price
+
+    -   Any discounted prices and the original price
+
+    -   An option to add to the cart
+
+    -   Current average rating and any reviews that have been written
+
+    -   An option to review and rate the song (only available if the
+        customer has purchased the song)
+
+    -   If the song is already in the customer’s cart, do not allow the
+        customer to add it again
+
+Album Search
+
+-   Individual albums may be searched by any combination of the
+    following: name, genre, artist, rating
+
+    -   For name and artist, customers can do a keyword search
+
+    -   Search results should display title, artist, rating and price
+
+-   User should be able to sort search results by ascending/descending:
+    name, artist, and rating
+
+-   Clicking on the album in the search results will take the user to
+    details for that album, which includes:
+
+    -   Name, artist, genre(s), rating and price. There should be a link
+        to that artists’ details page.
+
+    -   A full list of all the songs on the album. This list should show
+        the name of each song and a link to the details page for that
+        song
+
+    -   Whether the price is discounted. If the price IS discounted,
+        also show the full price
+
+    -   An option to add the album to the cart. If the album is already
+        in the customer’s cart, do not allow them to add it again
+
+    -   Current average rating and any reviews that have been written
+
+    -   An option to review and rate the album (only available if the
+        customer has purchased the album)
+
+Artist Search
+
+-   Individual artists may be searched by any combination of the
+    following: name, genre, and rating. Search results should display
+    name and rating.
+
+-   Sort search results by ascending/descending: name and rating
+
+-   Clicking on a link for the artist in the search result will bring
+    you to the details for that artist, which has all of its
+    information:
+
+    -   Name, genre(s), and rating
+
+    -   A full list of all albums by that artist. Each album should have
+        a link to the album’s details page
+
+    -   A full list of songs by that artist. Each song should have a
+        link to the song’s details page
+
+    -   Current average rating and any reviews that have been written
+
+    -   An option to review and rate the artist (only available if the
+        customer has purchased at least one album or song by that
+        artist)
+
+Purchase
+
+Customers should have the option to purchase music.
+
+Checkout
+
+-   Customers should not be able to move forward with a purchase until
+    they have items in the shopping cart. Choosing the checkout option
+    without items in the cart should give the customer an error saying
+    that they must choose what to purchase first.
+
+-   A customer cannot have duplicate songs in their cart.
+
+    -   If an album is added to the cart, then all songs that are in the
+        album that are also in the cart are registered as duplicates.
+
+    -   Customers must be notified that there is a duplicate song in
+        their cart that must be removed before checkout can be
+        completed.
+
+-   Once a customer is ready to checkout and has items in the cart, the
+    checkout screen should show them their subtotal, tax (tax rate is
+    8.25%), and total. They should have the option to select which
+    credit card they want to use. Only display the last four digits of
+    the card and the card type (e.g. **** **** **** 4212 VISA).
+    Customers may either use a credit card on file or enter a different
+    credit card. If using a new credit card, apply the same validations
+    as when adding a card to the account.
+
+-   Any deductions should be automatically factored into the price.
+    However, the user should see the original price AND the discounted
+    price.
+
+-   During checkout, customers should also have the option to make the
+    purchase as a gift for another customer. This requires the customer
+    to put in their friend’s email address. If that email address is on
+    file, then the order should go through just fine. If we do not have
+    the address on file, then give the customer an error.
+
+-   The second screen should show the customer their full order, the
+    credit card used (show only the last four digits), the recipient,
+    and the order total. It should ask the customer to confirm the
+    order. Confirmation should thank the customer, send out emails, and
+    present the customer with a link back to the home page.
+
+Email
+
+-   Completing an order should send out one or two emails
+
+    -   If the music was bought as a gift, send an email to the
+        gift-giver confirming the order went through, and another to the
+        recipient showing what the gift-giver bought for them.
+
+    -   If the music was NOT a gift, just send the email to the customer
+        with a list of the purchased music.
+
+-   The email sent to the recipient should also include recommendations
+
+    -   Pick any one song genre from an album or song in the purchase
+
+    -   Take the highest rated band that produces music of that genre,
+        and include a recommendation that the customer try out that band
+        as well.
+
+-   The email sent to the purchasing customer should include a link to
+    refund the order if it was made incorrectly.
+
+    -   The customer should be able to click this link, confirm the
+        order was a mistake, and cancel the order. If this happens, the
+        customer (and gift recipient, if the music was bought as a gift)
+        should receive an email confirming that the music was removed
+        from their account.
+
+    -   When an order is refunded, the system should mark the order as
+        deleted/refunded instead of removing it from the database.
+
+-   For security purposes, it is recommended that each group create a
+    new Gmail account to send these emails. The subject line of all
+    emails should start with “Team [Number]:” to help the grader find
+    the emails from your team.
+
+Shopping Cart
+
+-   Customers should have a link to their shopping cart where they can
+    manage the contents.
+
+-   Songs should show the title, artist, rating, and price
+
+-   Albums should show the title, artist, rating, and price
+
+-   For songs and albums, customers navigate to a detail page, which
+    allows them to add the items into the cart.
+
+-   The shopping cart is automatically saved for the users. If the
+    customer logs out and logs back in later, all of the items in the
+    shopping cart should be preserved.
+
+-   Customers can delete songs or albums from their cart.
+
+-   Customers cannot complete checkout with duplicate songs in their
+    cart.
+
+-   The price of all the items together should be displayed in the
+    shopping cart.
+
+-   Discounts should be calculated automatically. The customer should
+    see a message next to each discounted item showing the discounted
+    price and savings.
+
+-   If a discount is added or removed while the item is in the
+    customer’s shopping cart, the shopping cart should update to reflect
+    this change.
+
+-   The subtotal and total for the order should be displayed in the
+    shopping cart (list each of these separately):
+
+    -   Subtotal: the sum of each of the individual item prices
+
+    -   Tax: 8.25% of subtotal
+
+    -   Total: subtotal + tax
+
+-   Once the order is completed, the customer should see a confirmation
+    screen with an Order Confirmation number. Order confirmation numbers
+    start with 212000 and go up by one after that. (The first order MUST
+    have confirmation number 212000, the second one will have 212001,
+    etc.)
+
+Email
+
+-   The system should be able to send messages to the customer’s email
+    address.
+
+-   Customers get messages when:
+
+    -   They create an account
+
+    -   They place an order (i.e. complete checkout). See the email
+        section under checkout for more info.
+
+    -   An order is refunded
+
+-   For security purposes, it is recommended that each group create a
+    new Gmail account to send these emails. The subject line of all
+    emails should start with “Team [Number]:” to help the grader find
+    the emails from your team.
+
+Rate and Review Products
+
+-   Customers can review songs, albums, and artists. If writing a
+    review, the customer must include a rating on a scale from 1-5. The
+    customer should also have option of writing a full review (limited
+    to 100 characters).
+
+-   Item ratings are a simple average of approved customer ratings. They
+    should be carried out to 1 decimal place (e.g. 4.3, 3.2). Display
+    the product rating along with the product’s other information.
+
+-   A customer may change their review or rating once it has been
+    submitted. The rating average should be adjusted accordingly.
+
+-   Customers may only review items they have purchased from BT. Each
+    item may only be reviewed once by each customer.
+
+    -   Customers may edit or delete any reviews they created
+
+    -   Customers may edit but not delete ratings
+
+    -   Purchasing any song or album by a particular artist gives the
+        customer the ability to review that band
+
+    -   Customers may review albums only if they own the album OR own
+        every song from that album.
+
+Order History
+
+Customers can see a list of all orders they’ve placed, most recent
+first. This list should include all information about the order (except
+only the last four digits and type for the credit card). Customers who
+receive an order as a gift should not see that order in their order
+history. Order history must show purchase price for each individual
+item.
+
+My Music
+
+Customers can see a list of all the music they have rights to. This list
+should show title, genre(s), and artist. This list should also show the
+album the song is a part of if the customer received the song as part of
+an album. Customers should be able to sort their collection by title,
+artist, or genre. Customers should also be able to filter their music by
+title, artist, album, and genre.
+
+Employee Functionality
+
+Employees log in with their email and password. When an employee logs
+in, the system should automatically detect that this user is an employee
+and show them the employee pages. No customer should ever be able to
+view any of the employee pages.
+
+Modify Employee Account
+
+Employees can modify their address, phone number, and password only.
+Change the password requires entering in the old one again.
+
+Manage Customers
+
+Create Customer Profile
+
+Employees should be able to create a profile for a new customer. The
+employee will enter all the customer’s information, including a password
+for the new customer. When an employee creates a new customer account,
+the customer should receive the same account creation confirmation email
+mentioned above.
+
+Modify Customers
+
+Employees should have the same account editing functionality as the
+customers. Employees should be able to edit all customer fields except
+email address. Employees should be able to change the password without
+re-entering the old one.
+
+Disable/Enable Customer Account
+
+Employees may also disable customer accounts. A customer with a disabled
+account may still log in, the only difference is that they cannot
+checkout. All information is preserved, so if an employee re-enables the
+account, everything for that account is back to normal.
+
+Product Search
+
+Employees should be able to search products just like the customer can.
+The only difference between the employee side and customer side
+searching is that employees do not need the option to add the item to
+the cart or have an option to review the product (but they must be able
+to see the reviews/ratings).
+
+Purchase on Behalf of a Customer
+
+To provide back-end customer support, employees should be able to create
+an order for a customer. The employee should be prompted to select a
+customer and then proceed through the add-to-cart and checkout steps
+described above. The music purchased through this process should appear
+exactly the same to the customer as orders placed themselves.
+
+Edit Reviews/Ratings
+
+Employees should be able to approve and edit reviews made by customers.
+Reviews should not be displayed on the site or included in averages
+until they have been approved. Employees may change the text of the
+review (for clarity and profanity, etc.), but they may not edit the
+numerical rating.
+
+Manager Functionality
+
+The manager pages should have all the functionality of regular
+employees, plus the following.
+
+Promotions
+
+There are two types of promotions: featured items and individual item
+discounts. Managers should be able to set the featured item and put
+individual discounts into effect. Discounts can be modified after they
+are created and they can be disabled (not actually deleted). Discounts
+cannot be deleted.
+
+Featured Item
+
+Managers can set up a featured item. Songs, bands, and albums can be
+featured. All customers should see the featured item when they log in.
+
+Discount for an Item
+
+-   The manager selects an item and inputs the amount of the discount.
+    This behaves much like changing the price for an item. Once the
+    manager discontinues the discount, the price should change back to
+    the original price.
+
+-   Item discounts should be automatically advertised on the customer
+    side pages. Customers should see the regular price, as well as the
+    sale price on the item page. However, when the item is listed in a
+    search result, only the discounted price should be displayed.
+
+-   Customers should be able to see the amount of the discount on the
+    song’s page.
+
+Manage Employees
+
+Managers should be able to do the following:
+
+-   Hire new employees.
+
+-   Fire existing employees. Previous employees’ information should be
+    kept in the system because they can be rehired at a later date.
+    Fired employees should be blocked from logging in and should receive
+    an appropriate error message.
+
+-   Re-hire previous employees.
+
+-   Promote employees to manager.
+
+-   Modify employee profiles.
+
+Manage Products
+
+Managers should have an option under each song, album, and band detail
+page that lets them edit the data. All data, except unique numbers and
+auto-generated fields can change. This includes adding and removing
+individual songs from albums.
+
+Songs
+
+-   The manager can add new songs to the database.
+
+-   All fields are required.
+
+-   The song title can match another song title if the two songs are by
+    different bands. A band may not produce a song with the same title
+    twice.
+
+-   Managers can edit all data except automatically generated fields.
+
+-   If a song’s title changes, any albums with that song should be
+    automatically updated. Order history and a customer’s “My Music”
+    page should display the most current title of the song.
+
+-   The band performing a song must be in the database, otherwise
+    managers cannot add songs by that band. The manager must first add
+    the band to the database, and then add the song afterwards.
+
+Albums
+
+-   The manager can add new albums to the database.
+
+-   Songs must be in the database to be added to an album, so the
+    manager must enter all of the new songs before creating the album.
+
+-   The manager should select the band first, then get a list of all
+    songs by that band. These songs can then be added to the album.
+
+-   All album fields are required.
+
+-   Each album should have an album cover that shows up on the album
+    page
+
+-   Managers can edit all data except automatically generated fields
+
+Artists/Bands
+
+-   The manager can add bands to the database.
+
+-   All fields are required.
+
+Genres
+
+When a manager adds or edits a song, album, or artist, the option to add
+a new genre should be available.
+
+Reports
+
+The system should produce the following reports. Please include a record
+count for all reports. To facilitate testing, the reports section may be
+expanded as the semester goes on.
+
+All Songs Sold
+
+Lists all songs, the number of purchases, and the amount of revenue
+earned on that song. Only individual song purchases count here; albums
+are included in the next report.
+
+All Albums Sold
+
+The same as above, but for albums instead of songs.
+
+Top Selling Bands
+
+Listed by genre, the top selling band for each genre, along with song
+purchases, song revenue, album purchases by album, revenue by album, and
+total revenue
+
+Project Logistics
+
+System Project Teams
+
+The system project teams are made up of 4 class members. You will submit
+peer evaluation forms twice during the semester. However, if you are
+having trouble with any of your team members, please let Professor know
+as early as possible. Professor reserves the right to adjust your grade
+(up to and including giving you a zero) based on reviews from your
+group, so be a good teammate!
+
+Data
+
+We will provide you with seed data for the database in the form of Excel
+spreadsheets (see Canvas). This seed data (and ONLY this seed data) MUST
+be pre-loaded on your site when grading begins, or we will not be able
+to accurately grade your project.
+
+Your system should NOT allow any user to delete songs, orders, or user
+accounts. If one of these entities is no longer valid, they should be
+marked as inactive in the database. Deleting these records could lead to
+“orphan” data in related tables.
+
+Grade Script (Alpha) Testing
+
+About a week before the project is due, the TAs will need to test the
+grade script using a live project. We will ask for teams that are done
+(or mostly done) to use as our “guinea pigs.” Three or four teams will
+be selected for the grade script testing based on the % completion of
+your project. Teams selected for grade script testing will need to be
+available for questions via text message (or another channel acceptable
+to you and the TAs) while the TAs test the script. These teams will NOT
+get to see the grade script or any specifics about what was tested, but
+they will be alerted to any serious issues with their project. This
+“pre-grade” will have ZERO effect on the team’s final score. These
+projects will still need to be “officially” graded.
+
+Project Submission
+
+You will need to submit a link to your site’s home page and a zipped
+version of the MVC project on Canvas by 12:00 noon on Monday April 27th.
+Unauthorized changes to your website after this time will be considered
+violations of UT/McCombs academic integrity policies and will be
+reported to Student Judicial Services.
+
+Project Grading
+
+Project grading will take place during a pre-reserved window of time
+that your team selects in advance. At least one member of your team must
+be present for grading. We will discuss the specifics of grading on the
+last day of class. Team rankings will be posted by end of that week and
+final project grades will be posted by Monday afternoon May 4^(th). You
+will not be presenting to the class – you will choose a grading time
+slot and the grader will follow a detailed gradescript. The grader will
+ask you to perform various tasks on your site, and one of your teammates
+will “drive” the website to show your results.
+
+Project Awards
+
+The MIS 333K Team System Project includes cash awards for the top three
+teams:
+
+🥇 1^(st) Place (Gold): $2000
+
+🥈 2^(nd) Place (Silver): $1200
+
+🥉 3^(rd) Place (Bronze): $800
+
+Professor has sole discretion for picking the winning teams and decision
+is final. Prize winners will need to submit additional documentation to
+the IROM office. Please be aware that it may take several weeks to issue
+the payment.

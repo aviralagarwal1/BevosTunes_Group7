@@ -1,0 +1,336 @@
+How to Seed Using Excel and VBA, Part I
+========================================
+
+Seeding Overview
+----------------
+Seeding is the process of getting some sample data into your database. While you *can* just use the front-end of your website to enter all the data in manually, that is a *terrible* idea - it is error-prone, takes a lot of time, and can't be easily repeated if you need to drop your database or "start fresh" with a clean version of the sample data. It is far better to have some code that will load your data in for you, which is why we write C# code to programmatically load all of our data.
+
+The ETL Process
+---------------
+The way we do seeding in MIS 333K gives you a very small "taste" of the Extract-Transform-Load (ETL) process that is a key part of many MIS jobs, especially those in analytics. You often have data from a variety of sources that needs to be retrieved (extracted) from one source, transformed in some way, and then loaded into a separate system. An example might be a retail store that collects daily sales information on the computers that the cashiers use. Periodically (often overnight), the information is gathered from all of the cashiers' computers and loaded into a separate program that can perform analytics on the sales data. In MIS 333K, our original data starts in a spreadsheet and we are going to transform that spreadsheet data into some C# code that will be loaded into the databases for our applications.
+
+Create the Code for ONE Record by Hand
+---------------------------------------
+Before you attempt to extract any data from the Excel file, I suggest that you manually write the code to seed ONE RECORD. This will make sure that you have all the correct syntax for each property on the model before you try to automate the process. If I were doing this in Visual Studio for one book, the code would look like this (notice that there are no syntax errors):
+
+    public static class SeedingDemo
+        public static void SeedOneBook(AppDbContext db)
+        {
+            Book book = new Book()
+            {
+                Title = "The Art Of Racing In The Rain",
+                Author = "Garth Stein",
+                Description = "A Lab-terrier mix with great insight into the human condition helps his owner, a struggling race car driver.",
+                PublishedDate = new DateTime(2008, 5, 24),
+                Price = 21.95m,
+                BookFormat = Format.Paperback
+            };
+            book.Genre = db.Genres.FirstOrDefault(g => g.GenreName == "Contemporary Fiction");
+        }
+    }
+
+Make a special note that in the code above, the navigational property of a Book (Genre) has significantly different syntax. This is because we have to find the associated genre object in the database. Simply saying book.Genre = "Contemporary Fiction" would give us an error because the data type of the Genre property on the Book model is Genre, not String.
+
+Creating a List of Objects that Will Be Added to the Database
+-------------------------------------------------------------
+The next step would be to add the book we just created to the database. However, we want our seeding method to ADD new items to the database while RESETTING existing items in the database. That way, if you have changed some of the data in the database during testing, the Seed methods will set everything back to its original value. This takes a fairly significant amount of code, and it will need to be applied to MANY records, and we don't want to have a ton of duplicated code. SO instead, we add each book to a list of books and then we loop through that list to see which records need to be added and which need to be updated. So before we create the first book, we create a list to hold the books:
+
+    List<Book> Books = new List<Book>();
+
+Now, we update the code on the book we created to add this book to the list:
+
+    public static class SeedingDemo
+        public static void SeedOneBook(AppDbContext db)
+        {
+            //Add the list of books
+            List<Book> Books = new List<Book>();
+            Book book = new Book()
+            {
+                Title = "The Art Of Racing In The Rain",
+                Author = "Garth Stein",
+                Description = "A Lab-terrier mix with great insight into the human condition helps his owner, a struggling race car driver.",
+                PublishedDate = new DateTime(2008, 5, 24),
+                Price = 21.95m,
+                BookFormat = Format.Paperback
+            };
+            book.Genre = db.Genres.FirstOrDefault(g => g.GenreName == "Contemporary Fiction");
+            //Add this book to the list of books to add
+            Books.Add(book);
+        }
+    }
+
+Modify the Single Book to Be Generic Enough to Work for Multiple Books
+-----------------------------------------------------------------------
+Since we need to add a LOT of books, we want to make this code work for more than just one instance. It is really easy to increment numbers later on when we write the script for adding 200+ books, so change the name of the book we are adding from book to b1:
+
+    public static class SeedingDemo
+        public static void SeedOneBook(AppDbContext db)
+        {
+            //Add the list of books
+            List<Book> Books = new List<Book>();
+            Book b1 = new Book()
+            {
+                Title = "The Art Of Racing In The Rain",
+                Author = "Garth Stein",
+                Description = "A Lab-terrier mix with great insight into the human condition helps his owner, a struggling race car driver.",
+                PublishedDate = new DateTime(2008, 5, 24),
+                Price = 21.95m,
+                BookFormat = Format.Paperback
+            };
+            b1.Genre = db.Genres.FirstOrDefault(g => g.GenreName == "Contemporary Fiction");
+            //Add this book to the list of books to add
+            Books.Add(b1);
+        }
+    }
+
+Add in Flags and Counters to Help with Debugging
+-------------------------------------------------
+Sometimes the seeding process gets stuck along the way. Creating Flags and/or Counters to help you figure out which record is causing the problem can be very helpful for seeding. We are going to create two variables to help us know which book we are on while we loop through the list of books:
+
+    public static class SeedingDemo
+        public static void SeedOneBook(AppDbContext db)
+        {
+            //Create a counter and a flag so we will know which record is causing problems
+            Int32 intBooksAdded = 0;
+            String strBookTitle = "Begin";
+
+            //Add the list of books
+            List<Book> Books = new List<Book>();
+            Book b1 = new Book()
+            {
+                Title = "The Art Of Racing In The Rain",
+                Author = "Garth Stein",
+                Description = "A Lab-terrier mix with great insight into the human condition helps his owner, a struggling race car driver.",
+                PublishedDate = new DateTime(2008, 5, 24),
+                Price = 21.95m,
+                BookFormat = Format.Paperback
+            };
+            b1.Genre = db.Genres.FirstOrDefault(g => g.GenreName == "Contemporary Fiction");
+            //Add this book to the list of books to add
+            Books.Add(b1);
+
+            try  //attempt to add or update the book
+            {
+                //loop through each of the books in the list
+                foreach (Book bookToAdd in Books)
+                {
+                    //set the flag to the current title to help with debugging
+                    strBookTitle = bookToAdd.Title;
+
+                    //look to see if the book is in the database - this assumes that no
+                    //two books have the same title
+                    Book dbBook = db.Books.FirstOrDefault(b => b.Title == bookToAdd.Title);
+
+                    //if the dbBook is null, this title is not in the database
+                    if (dbBook == null)
+                    {
+                        //add the book to the database and save changes
+                        db.Books.Add(bookToAdd);
+                        db.SaveChanges();
+
+                        //update the counter to help with debugging
+                        intBooksAdded += 1;
+                    }
+                    else //dbBook is not null - this title *is* in the database
+                    {
+                        //update all of the book's properties
+                        dbBook.Title = bookToAdd.Title;
+                        dbBook.Author = bookToAdd.Author;
+                        dbBook.PublishedDate = bookToAdd.PublishedDate;
+                        dbBook.Description = bookToAdd.Description;
+                        dbBook.Price = bookToAdd.Price;
+
+                        //since we found the correct genre object in a previous step,
+                        //this update is easy - both dbBook and bookToAdd have a Genre
+                        //object for this property
+                        dbBook.Genre = bookToAdd.Genre;
+
+                        //update the database and save the changes
+                        db.Update(dbBook);
+                        db.SaveChanges();
+
+                        //update the counter to help with debugging
+                        intBooksAdded += 1;
+                    } //this is the end of the else
+                } //this is the end of the foreach loop for the books
+            }//this is the end of the try block
+
+            catch (Exception ex)//something went wrong with adding or updating
+            {
+                //Build a message using the flags we created
+                String msg = "  Repositories added:" + intBooksAdded + "; Error on " + strBookTitle;
+
+                //throw the exception with the new message
+                throw new InvalidOperationException(ex.Message + msg);
+            }
+        }
+    }
+
+Run this code and make sure it works. You should see one book in your database.
+
+So now we have the basic structure of the file, we need to add Books b2 through b250. Again, we *could* do this by hand, but that would take a LOT of effort. Instead, we can use a script written in a language like VBA or Python to help generate these files. The next page will show you how to do this.
+
+
+================================================================================
+
+How to Seed Using Excel and VBA, Part II
+=========================================
+
+First, take a look at the How to Seed Using Excel and VBA, Part I page to understand how to structure the Seeding File we are trying to create using VBA.
+
+Understanding VBA
+-----------------
+VBA (Visual Basic for Applications) is a coding language that is used to write Macros in all Microsoft Office Products. This tool is built in to Word, Excel, PowerPoint, Outlook, etc. and works really well for automating tasks inside and across these tools. Once you get the hang of it, VBA is easy to use and will solve all kinds of problems. In our case, we are going to use it to loop through an Excel spreadsheet and generate our SeedAllBooks file.
+
+Like almost all the files in our MVC projects, the file we are trying to create is a text file. While Visual Studio will turn .cs files all different colors and help with code completion, bracket matching, etc., it is important to remember that there is nothing "magical" about these files. They contain only text and are saved with a special file extension (.cs) so that Visual Studio can use the classes in these files in your MVC project. Since we are just outputting text to a file, most of the commands in the VBA script are equivalent to the statements you used to write to files in Python in MIS 304.
+
+Accessing the VBA Editor
+-------------------------
+First, open the spreadsheet that contains your data. You will want to save this file as a Macro-Enabled Workbook.
+
+Then, click on the menu at the top of the screen to customize the Toolbar and select the More Commands... option.
+
+Then select "Customize Ribbon" from the Left Menu. From this menu, check the "Developer" checkbox to display the Developer tab on the ribbon.
+
+Now that you have the "Developer" tab on your ribbon, you can select the Visual Studio button on the far left.
+
+This will open a new window - this is the VBA workspace. To get started, we will use the Solution Explorer to find our data workbook. Under this workbook, select the option to add a new module.
+
+Now we have a place to write code. To get started, we will add some setup code. Note that the single quote (') is the character for comments in VBA. The keyword Dim is short for dimension and is used to declare variables. The as keyword is how you indicate the type for the variable.
+
+    Public Sub GenerateBookSeed()
+        'Declare some variables for counters
+        Dim i As Integer 'this will help us keep track of which row of the spreadsheet we are on
+        Dim intCount As Integer 'this will help us know which record we are adding (b1, b2, b3 ... b250)
+        Dim strBook As String 'this is a flag to help us know the name of the book
+
+        'Start counter at 1 (variables default to 0, so we have to set this to 1)
+        intCount = 1
+
+        'Create a variable to reference the worksheet
+        Dim wksht As Worksheet
+
+        'set the variable equal to the currently active sheet (this is the name on the tab of the sheet)
+        Set wksht = ThisWorkbook.Worksheets("Books")
+
+        'create a variable for the used range of the sheet
+        Dim rng As Range
+
+        'set range equal to used range (the part of the spreadsheet that has data in it)
+        Set rng = wksht.UsedRange
+
+        'create an output file for all of this stuff
+        Dim outputFile
+
+        'ask the user for the name and place to save the file - this will pop up a box for the user to select their options
+        Filename = Application.GetSaveAsFilename("SeedBooks", Title:="Select a file name")
+
+        'create output file - this code sets up the file for output
+        outputFile = FreeFile
+        Open Filename For Output As outputFile
+
+Now, we need to go get our C# code from the previous step.
+
+Paste the full code from the C# file under the VBA code we wrote above.
+
+Now we just have to go line-by-line and turn these red lines into statements that will be printed out into our output file. This is *incredibly* tedious, but not hard. All you have to do is add Print #outputFile, (" before the line and then close the line with "). So the lines from the beginning of the file are:
+
+    using SeedingDemo.DAL;
+    using SeedingDemo.Models;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+
+But once they have been turned into VBA, you have:
+
+    Print #outputFile, ("using SeedingDemo.DAL;")
+    Print #outputFile, ("using SeedingDemo.Models;")
+    Print #outputFile, ("using System;")
+    Print #outputFile, ("using System.Collections.Generic;")
+    Print #outputFile, ("using System.Linq;")
+
+Once the lines are indented, you can add a vbTab for each indentation. (This is the equivalent of \t in Python. Yes, I know Python is shorter, but I didn't invent this syntax!). You also have to replace each double quote (") that you would like to print to the file with Chr(34). 34 is the ASCII/Unicode number for double quotes.
+
+    public static class SeedingDemo
+
+becomes:
+
+    Print #outputFile, (vbTab & "public static class SeedingDemo")
+
+and:
+
+                Title = "The Art Of Racing In The Rain",
+
+becomes:
+
+    Print #outputFile, (vbTab & vbTab & vbTab & vbTab & "Title = " & Chr(34) & "The Art of Racing in the Rain" & Chr(34) & ",")
+
+Slowly go through each line of the file and add this syntax. When you are done, add this code at the very bottom of the method:
+
+        'close the file
+        Close #outputFile
+    End Sub
+
+Once you have your code complete, you can press the green triangle play button at the top of the screen. It should give you a few prompts and then save the file.
+
+Add the Loop
+------------
+Now you have the code to correctly spit out the file we created on the How to Seed Using Excel and VBA, Part I page. The last thing we need to do is modify the VBA script to loop through our Excel spreadsheet to create all 250 books. We will do that in Part III.
+
+
+================================================================================
+
+How to Seed Using Excel and VBA, Part III
+==========================================
+
+First, take a look at the first two steps of this process in Part I and Part II.
+
+You should have a module in your Seed Data spreadsheet that will create the C# code to seed a single book. Now we are going to modify this module to loop through the spreadsheet and create all 250 books.
+
+This is the code that you need for the loop part of the VBA script. The secret to understanding this code is to know that Excel refers to cells in the format (row, column), so cell A1 is (1,1) and cell B1 is (1,2) and cell A2 is (2,1), etc. The code refers to the different columns that it needs to get the data. So in the books example, the Title of each book is in Column 1, the Author is in Column 2, etc.
+
+You may also want to split some of the columns in the spreadsheet into a more useful format. This is especially important for dates. You can use the Excel functions =Day(), =Month(), and =Year() to split up a date. (HINT: Do this BEFORE you try to modify the VBA code, otherwise your column numbers will need to be updated in the VBA.)
+
+You may also choose to add columns if you need them (for properties like active, etc.). You may also need to do some lookups (say if you have a customer name, but you need their email). The Excel spreadsheets that have the Seeding data are not sacred - you can manipulate them as much as needed. Just be sure not to change any of the values. (It's okay to split Jan 1, 2021 into three columns, but don't change it to Jan 1, 2022!)
+
+Once your spreadsheet is ready to go, you can add in the code for the loop and substitute the hard-coded values from the first example into references to the cells. Your finished product will look something like below. Remember, you have some code before you add this loop and a small amount of code after. This code will replace the code that added Book 1 to the list of books.
+
+    For i = 2 To wksht.UsedRange.Rows.Count
+        strBook = "b" & intCount
+
+        'add the text fields
+        'NOTE: Chr(34) produces the required double quote (")
+        'Double quotes have a specific meaning in VBA, so you have to use the function
+        'that references the ASCII value for the double quote, which is 34
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & "Book " & strBook & " = new Book()")
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & "{")
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "Title = " & Chr(34) & rng.Cells(i, 1) & Chr(34) & ",")
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "Author = " & Chr(34) & rng.Cells(i, 2) & Chr(34) & ",")
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "Description = " & Chr(34) & rng.Cells(i, 8) & Chr(34) & ",")
+
+        'add published date using year, month and day
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "PublishedDate = new DateTime(" & rng.Cells(i, 4) & ", " & _
+           rng.Cells(i, 5) & ", " & rng.Cells(i, 6) & "),")
+
+        'add price field - no quotes here because the value is a decimal
+        'the 'm' at the end is to convert the number to the Decimal data type
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "Price = " & rng.Cells(i, 9) & "m,")
+
+        'add the format (paperback v. hardback)
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & vbTab & "BookFormat = Format." & rng.Cells(i, 10))
+
+        'close the block
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & "};")
+
+        'add the genre
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & strBook & ".Genre = db.Genres.FirstOrDefault(g => g.GenreName == " & _
+          Chr(34) & rng.Cells(i, 7) & Chr(34) & ");")
+
+        'add to list of books
+        Print #outputFile, (vbTab & vbTab & vbTab & vbTab & "Books.Add(" & strBook & ");")
+
+        'skip a line
+        Print #outputFile, ("")
+
+        intCount = intCount + 1
+    Next
